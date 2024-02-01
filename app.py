@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request
-from PIL import Image
+from PIL import Image , ImageFilter
 import numpy as np
 import matplotlib.pyplot as plt
 from roboflow import Roboflow
@@ -28,6 +28,19 @@ model = project.version(1).model
 api_key = os.getenv('API_KEY')
 api_secret = os.getenv('API_SECRET')
 cloud_name = os.getenv('CLOUD_NAME')
+
+# Function for Boundary Patch Refinement (BPR)
+def refine_boundary(mask, patch_size=3):
+    # Convert mask to PIL Image
+    mask_image = Image.fromarray(np.uint8(mask * 255), 'L')
+
+    # Apply BPR using Gaussian Blur
+    refined_mask_image = mask_image.filter(ImageFilter.GaussianBlur(radius=patch_size))
+
+    # Convert the refined mask back to numpy array
+    refined_mask = np.array(refined_mask_image) / 255.0
+
+    return refined_mask
 
 
 def create_mask_from_points(image_size, points):
@@ -58,6 +71,14 @@ def process_image(room_image_path, texture_image_path):
     # Create mask for the floor
     mask = create_mask_from_points(room_image.size, floor_coordinates)
 
+    
+
+    # Apply Boundary Patch Refinement to the mask
+    refined_mask = refine_boundary(mask)
+
+    # Ensure that the refined_mask contains boolean values
+    refined_mask_bool = refined_mask >=0.9
+
     # Get the dimensions of the room image
     room_width, room_height = room_image.size
 
@@ -72,7 +93,7 @@ def process_image(room_image_path, texture_image_path):
 
 
     room_with_texture = np.array(room_image)
-    room_with_texture[mask] = np.array(resized_texture)[mask]
+    room_with_texture[refined_mask_bool] = np.array(resized_texture)[refined_mask_bool]
     
     #Repeated texture code
     # room_with_texture[mask] = repeated_texture[mask]
