@@ -155,19 +155,19 @@ def upload_file():
     if not file_to_upload:
         return jsonify({'error': 'No file provided'})
     
-    texture_image_path = 'uploads/' + 't10.jpeg'
+    # texture_image_path = 'uploads/' + 't10.jpeg'
     
     try:
         # Upload the room image to cloudinary
         room_upload_result = cloudinary.uploader.upload(file_to_upload)
 
         # Process the image and upload the textured image
-        output_image_path = process_image(room_upload_result['secure_url'], texture_image_path)
-        print(output_image_path)
-        textured_img_upload_result = cloudinary.uploader.upload(output_image_path)
+        # output_image_path = process_image(room_upload_result['secure_url'], texture_image_path)
+        # print(output_image_path)
+        # textured_img_upload_result = cloudinary.uploader.upload(output_image_path)
 
         # Return upload results
-        return jsonify({'room_image': room_upload_result, 'textured_image': textured_img_upload_result})
+        return jsonify({'room_image': room_upload_result})
     except Exception as e:
         # Handle upload or processing errors
         return jsonify({'error': str(e)})
