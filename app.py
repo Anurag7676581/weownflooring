@@ -123,6 +123,28 @@ def index():
         return jsonify({
              "data":textured_img_upload_result
         })
+@app.route('/rotateTexture', methods=['POST'])
+def solve():
+    cloudinary.config(cloud_name=cloud_name, api_key=api_key, api_secret=api_secret)
+    img_url= request.json.get('imgurl')
+    texture_idx= request.json.get('texture')
+    i = int(texture_idx) #typecasting
+    texture_collection = ['t1.jpg', 't2.jpg', 't3.jpg', 't4.jpg']
+
+    texture_image_path = 'uploads/' + texture_collection[i]  
+        # Use the locally stored image in the process_image function
+    # Rotate the image by 90 degrees
+    img = Image.open(texture_image_path)
+    rotated_img=img.rotate(90)
+# Save the rotated image
+    path =  'static/rotated_img.jpg' # Replace with the desired output path
+    rotated_img.save(path)
+    output_image_path = process_image(img_url, path)
+    textured_img_upload_result = cloudinary.uploader.upload(output_image_path)
+    return jsonify({
+             "data":textured_img_upload_result
+        })
+
 
 @app.route("/upload", methods=['POST'])
 def upload_file():
